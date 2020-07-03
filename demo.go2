@@ -1,0 +1,26 @@
+package main
+
+import "fmt"
+
+type MyList(type T) []T
+
+func (ml MyList(T)) Len() int {
+	return len(ml)
+}
+
+func main() {
+	var ff MyList(int)
+	ff = append(ff, 1)
+	ff = append(ff, 2)
+	// f := MyList([]int{1, 2, 3})
+	fmt.Println(ff.Len())
+
+	var gg MyList(string)
+	gg = append(gg, "1")
+	gg = append(gg, "2")
+	// f := MyList([]int{1, 2, 3})
+	fmt.Println(gg.Len())
+
+	// ff = append(ff, "dsd")
+	// fmt.Println(ff.Len())
+}
