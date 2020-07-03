@@ -1,0 +1,76 @@
+package main
+
+import (
+	"fmt"
+	"strconv"
+)
+
+func Map(type K,V)(in []K, f func(K) V) []V {
+	out := make([]V, len(in))
+	for i, item := range in {
+		out[i] = f(item)
+	}
+	return out
+}
+
+func Keys(type K comparable,V interface{})(in map[K]V) []K {
+	keys := make([]K, 0, len(in))
+	for k := range in {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func Values(type K comparable, V interface{}) (in map[K]V) []V {
+	values := make([]V, 0, len(in))
+	for _, v := range in {
+		values = append(values, v)
+	}
+	return values
+}
+
+func IndexOf(type K comparable)(s []K, item K)int {
+	for i, x := range s {
+		if item == x {
+			return i
+		}
+	}
+	return -1
+}
+
+func Filter(type K)(s []K, f func(K)bool) []K {
+	var res []K
+	for _, item := range s {
+		if f(item) {
+			res = append(res, item)
+		}
+	}
+	return res
+}
+
+func main() {
+	nums := []int{1,2,3,4}
+	fmt.Println(nums)
+
+	added := Map(int, int)(nums, func(i int)int {return i+1})
+	fmt.Println(added)
+
+	strs := Map(int, string)(nums, func(i int) string {
+		return strconv.Itoa(i)+"hello"
+	})
+	fmt.Println(strs)
+
+	m := map[int]string{
+		1: "hi",
+		2: "hello",
+		4: "four",
+	}
+	fmt.Println(Keys(m))
+	fmt.Println(Values(m))
+
+	fmt.Println(IndexOf(nums, 3))
+	fmt.Println(Filter(nums, func(i int) bool{return i%2==0}))
+}
+
+func name() {
+}
