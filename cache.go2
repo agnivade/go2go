@@ -1,0 +1,162 @@
+package main
+
+import (
+	"container/list"
+	"sync"
+	"time"
+)
+
+// Cache (under package cache2) is a representation of a cache store that aims to replace cache.Cache
+type Cache(type T) interface {
+	Set(key string, value T) error
+	SetWithExpiry(key string, value T, ttl time.Duration) error
+	Get(key string, value *T) error
+	Remove(key string) error
+	Keys() ([]string, error)
+	Len() (int, error)
+}
+
+// CacheOptions contains options for initializaing a cache
+type CacheOptions struct {
+	Name          string
+	Size          int
+	DefaultExpiry time.Duration
+}
+
+// Provider is a provider for Cache
+type Provider interface {
+	// NewCache creates a new cache with given options.
+}
+
+type cacheProvider struct {
+}
+
+// NewProvider creates a new CacheProvider
+func NewProvider() Provider {
+	return &cacheProvider{}
+}
+
+type NewCache(type T) func() Cache(T)
+
+func NewCacheFunc(type T)(opts *CacheOptions) NewCache(T) {
+	return func() (_ Cache(T)) {
+		return NewLRU(T)(&LRUOptions{
+			Name:          opts.Name,
+			Size:          opts.Size,
+			DefaultExpiry: opts.DefaultExpiry,
+		})
+	}
+}
+
+// LRUOptions contains options for initializing LRU cache
+type LRUOptions struct {
+	Name          string
+	Size          int
+	DefaultExpiry time.Duration
+}
+
+// LRU is a thread-safe fixed size LRU cache.
+type LRU(type T) struct {
+	name              string
+	size              int
+	evictList         *list.List
+	items             map[string]*list.Element
+	lock              sync.RWMutex
+	defaultExpiry     time.Duration
+	currentGeneration int64
+	len               int
+}
+
+// NewLRU creates an LRU of the given size.
+func NewLRU(type T)(opts *LRUOptions) Cache(T) {
+	return &LRU(T){
+		name:          opts.Name,
+		size:          opts.Size,
+		evictList:     list.New(),
+		items:         make(map[string]*list.Element, opts.Size),
+		defaultExpiry: opts.DefaultExpiry,
+	}
+}
+
+// Purge is used to completely clear the cache.
+func (l *LRU(T)) Purge() error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	l.len = 0
+	l.currentGeneration++
+	return nil
+}
+
+// Set adds the given key and value to the store without an expiry. If the key already exists,
+// it will overwrite the previous value.
+func (l *LRU(T)) Set(key string, value T) error {
+	return l.SetWithExpiry(key, value, 0)
+}
+
+// SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
+// already exists, it will overwrite the previoous value
+func (l *LRU(T)) SetWithExpiry(key string, value T, ttl time.Duration) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return l.set(key, value, ttl)
+}
+
+// Get the content stored in the cache for the given key, and decode it into the value interface.
+// return ErrKeyNotFound if the key is missing from the cache
+func (l *LRU(T)) Get(key string, value *T) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return l.get(key, value)
+}
+
+// Remove deletes the value for a key.
+func (l *LRU(T)) Remove(key string) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return nil
+}
+
+// Keys returns a slice of the keys in the cache.
+func (l *LRU(T)) Keys() ([]string, error) {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+
+	keys := make([]string, l.len)
+	return keys, nil
+}
+
+// Len returns the number of items in the cache.
+func (l *LRU(T)) Len() (int, error) {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.len, nil
+}
+
+func (l *LRU(T)) set(key string, value T, ttl time.Duration) error {
+	_ = key
+	_ = value
+	return nil
+}
+
+func (l *LRU(T)) get(key string, value *T) error {
+	_ = key
+	_ = value
+	return nil
+}
+
+type myStruct struct {
+}
+
+func main() {
+	var get myStruct
+
+	newLRU := NewCacheFunc(myStruct)(&CacheOptions{
+		Name:          "name",
+		Size:          10,
+		DefaultExpiry: 10 * time.Second,
+	})()
+
+	_ = newLRU.Set("key", myStruct{})
+	_ = newLRU.Get("key", &get)
+}

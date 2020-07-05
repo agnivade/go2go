@@ -71,6 +71,3 @@ func main() {
 	fmt.Println(IndexOf(nums, 3))
 	fmt.Println(Filter(nums, func(i int) bool{return i%2==0}))
 }
-
-func name() {
-}
